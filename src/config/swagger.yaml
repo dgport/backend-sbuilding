@@ -1,0 +1,1226 @@
+openapi: 3.0.0
+info:
+  title: AISI GROUP
+  description: API for managing property
+  version: 0.2.0
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Error message'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        email:
+          type: string
+          example: 'user@example.com'
+        firstName:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+
+tags:
+  - name: Authentication
+    description: 'Endpoints related to user authentication'
+  - name: Buildings
+    description: 'Endpoints related to building management'
+
+paths:
+  /signin:
+    post:
+      tags:
+        - Authentication
+      summary: 'Sign in to the system'
+      description: 'Authenticate with email and password to receive a token stored in cookies'
+      operationId: 'signIn'
+      requestBody:
+        description: 'User credentials'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: 'user@example.com'
+                  description: "User's email address"
+                password:
+                  type: string
+                  format: password
+                  example: 'securepassword'
+                  description: "User's password"
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: 'Login successful'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Login successful'
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: 'token=xxxx; HttpOnly; SameSite=Strict'
+        '400':
+          description: 'Invalid input data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'Invalid credentials'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /signup:
+    post:
+      tags:
+        - Authentication
+      summary: 'Sign up to the system'
+      description: 'Register a new user with email, password, and name'
+      operationId: 'signUp'
+      requestBody:
+        description: 'User registration data'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: 'user@example.com'
+                  description: "User's email address"
+                password:
+                  type: string
+                  format: password
+                  example: 'securepassword'
+                  description: "User's password"
+                firstName:
+                  type: string
+                  example: 'John'
+                  description: "User's first name"
+                lastName:
+                  type: string
+                  example: 'Doe'
+                  description: "User's last name"
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+      responses:
+        '201':
+          description: 'User registered successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'User registered successfully'
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: 'Invalid input data or user already exists'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid input data or User with this email already exists'
+                  errors:
+                    type: object
+                    description: 'Validation error details'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /signout:
+    post:
+      tags:
+        - Authentication
+      summary: 'Sign out from the system'
+      description: 'Clear the authentication token cookie'
+      operationId: 'signOut'
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 'Logged out successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Logged out successfully'
+        '401':
+          description: 'Authentication required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /add_building:
+    post:
+      tags:
+        - Buildings
+      summary: 'Add a new building'
+      description: 'Create a new building with only a name'
+      operationId: 'addBuilding'
+      security:
+        - cookieAuth: []
+      requestBody:
+        description: 'Building data including only the name'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Goderdzi Resort'
+                  description: 'The name of the building'
+              required:
+                - name
+      responses:
+        '201':
+          description: 'Building created successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Building created successfully'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 'b1d8fd3a-7ab1-4f1e-8353-e4f98e5c094c'
+                      name:
+                        type: string
+                        example: 'Goderdzi Resort'
+                      created_at:
+                        type: string
+                        format: date-time
+        '400':
+          description: 'Invalid input data'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid input data'
+                  errors:
+                    type: object
+                    description: 'Validation error details'
+        '401':
+          description: 'Authentication required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'Invalid or expired token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error while creating Building'
+
+  /delete_building/{id}:
+    delete:
+      tags:
+        - Buildings
+      summary: 'Delete a building'
+      description: 'Delete a building by its ID'
+      operationId: 'deleteBuilding'
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'The ID of the building to delete'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Building deleted successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Building deleted successfully'
+        '404':
+          description: 'Building not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'Authentication required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'Invalid or expired token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /buildings:
+    get:
+      tags:
+        - Buildings
+      summary: 'Get all buildings'
+      description: 'Retrieve a list of all buildings'
+      operationId: 'getBuildings'
+      responses:
+        '200':
+          description: 'Buildings retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Buildings retrieved successfully'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: 'b1d8fd3a-7ab1-4f1e-8353-e4f98e5c094c'
+                        name:
+                          type: string
+                          example: 'Goderdzi Resort'
+                        created_at:
+                          type: string
+                          format: date-time
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /building/{id}:
+    get:
+      tags:
+        - Buildings
+      summary: 'Get building by ID'
+      description: 'Retrieve a building by its ID'
+      operationId: 'getBuildingById'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'The ID of the building to retrieve'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Building retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Building retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 'b1d8fd3a-7ab1-4f1e-8353-e4f98e5c094c'
+                      name:
+                        type: string
+                        example: 'Goderdzi Resort'
+                      created_at:
+                        type: string
+                        format: date-time
+        '404':
+          description: 'Building not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /add_floor_plan:
+    post:
+      summary: Create a new floor plan
+      tags:
+        - Floor Plans
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - building_id
+                - floor_range_start
+                - floor_range_end
+                - starting_apartment_number
+                - apartments_per_floor
+                - desktop_image
+                - mobile_image
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: 'Tower A Floor Plan'
+                  description: Name of the floor plan
+                building_id:
+                  type: integer
+                  minimum: 1
+                  example: 1
+                  description: ID of the building the floor plan is associated with
+                floor_range_start:
+                  type: integer
+                  minimum: 1
+                  example: 1
+                  description: Starting floor range number
+                floor_range_end:
+                  type: integer
+                  minimum: 1
+                  example: 5
+                  description: Ending floor range number, must be greater than or equal to `floor_range_start`
+                starting_apartment_number:
+                  type: integer
+                  minimum: 1
+                  example: 101
+                  description: Number of the first apartment on the floor
+                apartments_per_floor:
+                  type: integer
+                  minimum: 1
+                  example: 4
+                  description: Number of apartments per floor
+                desktop_image:
+                  type: string
+                  format: binary
+                  description: Image file for the desktop version of the floor plan
+                mobile_image:
+                  type: string
+                  format: binary
+                  description: Image file for the mobile version of the floor plan
+      responses:
+        '201':
+          description: Floor plan created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+                  message:
+                    type: string
+                    example: 'Floor plan created successfully'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 123
+                      name:
+                        type: string
+                        example: 'Tower A Floor Plan'
+                      building_id:
+                        type: integer
+                      desktop_image:
+                        type: string
+                      mobile_image:
+                        type: string
+        '400':
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: VALIDATION_ERROR
+                  message:
+                    type: string
+                    example: 'Invalid input data'
+        '404':
+          description: Building not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: BUILDING_NOT_FOUND
+                  message:
+                    type: string
+                    example: 'Building with this ID does not exist.'
+        '409':
+          description: Floor plan with this name already exists for the building
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: FLOOR_PLAN_EXIST
+                  message:
+                    type: string
+                    example: 'A floor plan with this name already exists for this building.'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: SERVER_ERROR
+                  message:
+                    type: string
+                    example: 'An error occurred while creating the floor plan'
+
+  /floor_plans/{id}:
+    get:
+      tags:
+        - Floor Plans
+      summary: Get a floor plan by Building ID
+      description: Retrieve a specific floor plan by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the floor plan
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A floor plan object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Main Floor'
+                  building_id:
+                    type: integer
+                    example: 101
+                  desktop_image:
+                    type: string
+                    example: '/images/desktop_main.png'
+                  mobile_image:
+                    type: string
+                    example: '/images/mobile_main.png'
+                  desktop_paths:
+                    type: array
+                    items:
+                      type: string
+                    example: ['/path1', '/path2']
+                  mobile_paths:
+                    type: array
+                    items:
+                      type: string
+                    example: ['/m_path1', '/m_path2']
+                  floor_range_start:
+                    type: integer
+                    example: 1
+                  floor_range_end:
+                    type: integer
+                    example: 10
+                  starting_apartment_number:
+                    type: integer
+                    example: 101
+                  apartments_per_floor:
+                    type: integer
+                    example: 4
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: '2024-11-12T14:30:00Z'
+        '404':
+          description: Floor plan not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'ERROR'
+                  error:
+                    type: string
+                    example: 'FLOOR_PLAN_NOT_FOUND'
+                  message:
+                    type: string
+                    example: 'Floor plan with this ID does not exist.'
+
+  /add_apartments:
+    post:
+      summary: Generate apartments based on a floor plan ID and building ID
+      operationId: createApartments
+      tags:
+        - Apartments
+      requestBody:
+        description: The floor plan ID, building ID, and name used to generate apartments.
+        content:
+          application/json:
+            required: true
+            schema:
+              type: object
+              properties:
+                floor_plan_id:
+                  type: integer
+                  description: The ID of the floor plan to generate apartments for.
+                  example: 1
+                building_id:
+                  type: integer
+                  description: The ID of the building for the apartments.
+                  example: 1
+                name:
+                  type: string
+                  description: The name or label for the floor plan.
+                  example: 'Plan A'
+              required:
+                - floor_plan_id
+                - building_id
+                - name
+      responses:
+        '201':
+          description: Apartments generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+                  message:
+                    type: string
+                    example: Apartments generated successfully.
+                  apartments:
+                    type: object
+                    properties:
+                      building_id:
+                        type: integer
+                        example: 1
+                      floor_plan_id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Plan A'
+                      apartments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            floor:
+                              type: integer
+                              example: 1
+                            apartments:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  flat_id:
+                                    type: integer
+                                    example: 1
+                                  flat_number:
+                                    type: integer
+                                    example: 101
+                                  status:
+                                    type: string
+                                    enum: ['available', 'reserved', 'sold']
+                                    default: 'available'
+                                    example: 'available'
+                                  images:
+                                    type: array
+                                    description: Array of image paths for the apartment
+                                    items:
+                                      type: string
+                                    default: []
+                                    example: []
+                                  square_meters:
+                                    type: number
+                                    format: float
+                                    description: Apartment area in square meters
+                                    default: 0
+                                    example: 0
+                required:
+                  - status
+                  - message
+                  - apartments
+        '400':
+          description: Invalid input or duplicate apartments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    enum:
+                      [
+                        BUILDING_NOT_FOUND,
+                        FLOOR_PLAN_NOT_FOUND,
+                        DUPLICATE_APARTMENTS,
+                        VALIDATION_ERROR,
+                      ]
+                    example: BUILDING_NOT_FOUND
+                  message:
+                    type: string
+                    example: 'Building with ID 1 does not exist.'
+                required:
+                  - status
+                  - error
+                  - message
+        '500':
+          description: An error occurred while generating apartments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    enum: [SERVER_ERROR, UNKNOWN_ERROR]
+                    example: SERVER_ERROR
+                  message:
+                    type: string
+                    example: An error occurred while generating apartments.
+                  details:
+                    type: string
+                    example: Some detailed error message (only in development mode)
+                required:
+                  - status
+                  - error
+                  - message
+
+  /apartments/{building_id}/{floor_plan_id}:
+    get:
+      summary: Get apartments by building ID and floor plan ID
+      operationId: getApartmentsByBuildingAndFloorPlanId
+      tags:
+        - Apartments
+      parameters:
+        - name: building_id
+          in: path
+          description: The ID of the building to get apartments for.
+          required: true
+          schema:
+            type: integer
+          example: 1
+        - name: floor_plan_id
+          in: path
+          description: The ID of the floor plan to get apartments for.
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Apartments retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+                  message:
+                    type: string
+                    example: Apartments retrieved successfully for building ID 1 and floor plan ID 1.
+                  apartments:
+                    type: object
+                    properties:
+                      building_id:
+                        type: integer
+                        example: 1
+                      floor_plan_id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Plan A'
+                      floors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            floor:
+                              type: integer
+                              example: 1
+                            apartments:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  flat_id:
+                                    type: integer
+                                    example: 1
+                                  flat_number:
+                                    type: integer
+                                    example: 101
+                                  status:
+                                    type: string
+                                    enum: ['available', 'reserved', 'sold']
+                                    default: 'available'
+                                    example: 'available'
+                                  images:
+                                    type: array
+                                    description: Array of image paths for the apartment
+                                    items:
+                                      type: string
+                                    example: []
+                                  square_meters:
+                                    type: number
+                                    format: float
+                                    description: Apartment area in square meters
+                                    default: 0
+                                    example: 0
+                required:
+                  - status
+                  - message
+                  - apartments
+        '400':
+          description: Invalid building_id or floor_plan_id parameter.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: INVALID_PARAMETERS
+                  message:
+                    type: string
+                    example: The provided building_id or floor_plan_id is not valid.
+                required:
+                  - status
+                  - error
+                  - message
+        '404':
+          description: No apartments found for the specified building_id and floor_plan_id.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: NO_APARTMENTS_FOUND
+                  message:
+                    type: string
+                    example: No apartments found for building ID 1 and floor plan ID 1.
+                required:
+                  - status
+                  - error
+                  - message
+        '500':
+          description: An error occurred while retrieving apartments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  error:
+                    type: string
+                    example: SERVER_ERROR
+                  message:
+                    type: string
+                    example: An error occurred while retrieving apartments.
+                  details:
+                    type: string
+                    example: Some detailed error message (only in development mode)
+                required:
+                  - status
+                  - error
+                  - message
+
+  /update_apartment_status:
+    put:
+      summary: Update the status of an apartment
+      description: Updates the status of an apartment based on the floor plan ID and flat number.
+      operationId: updateApartmentStatus
+      tags:
+        - Apartments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - available
+                    - reserved
+                    - sold
+                  description: The new status of the apartment.
+                floor_plan_id:
+                  type: integer
+                  description: The ID of the floor plan that the apartment belongs to.
+                flat_number:
+                  type: integer
+                  description: The flat number of the apartment.
+              required:
+                - status
+                - floor_plan_id
+                - flat_number
+      responses:
+        '200':
+          description: Apartment status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Apartment status updated successfully'
+                  apartment:
+                    type: object
+                    properties:
+                      flat_id:
+                        type: integer
+                        example: 1
+                      flat_number:
+                        type: integer
+                        example: 101
+                      status:
+                        type: string
+                        example: 'reserved'
+                      floor_plan_id:
+                        type: integer
+                        example: 8
+                      image:
+                        type: string
+                        nullable: true
+                        example: null
+                      square_meters:
+                        type: string
+                        example: '50.00'
+        '400':
+          description: Invalid input. The request body is not valid or missing required fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Invalid input'
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                        path:
+                          type: array
+                          items:
+                            type: string
+                        type:
+                          type: string
+        '404':
+          description: No apartment found with the provided floor_plan_id and flat_number.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Apartment not found with the given floor_plan_id and flat_number'
+        '500':
+          description: Internal server error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Internal server error'
+
+  /update_shared_properties:
+    put:
+      summary: Update shared properties of an apartment
+      tags:
+        - Apartments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                floor_plan_id:
+                  type: integer
+                  description: The ID of the floor plan
+                  example: 1
+                flat_id:
+                  type: integer
+                  description: The ID of the flat
+                  example: 1
+                square_meters:
+                  type: number
+                  description: The square meters of the flat
+                  example: 50.0
+                images:
+                  type: array
+                  description: Multiple image files for the apartment (up to 5)
+                  items:
+                    type: string
+                    format: binary
+                mobile_paths:
+                  type: string
+                  description: The mobile image paths (optional, default empty string if not provided)
+                  example: '/uploads/mobile-apartment-1234567890.jpg'
+                desktop_paths:
+                  type: string
+                  description: The desktop image paths (optional, default empty string if not provided)
+                  example: '/uploads/desktop-apartment-0987654321.jpg'
+              required:
+                - floor_plan_id
+                - flat_id
+                - square_meters
+      responses:
+        '200':
+          description: Shared properties updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Shared properties updated successfully
+                  updatedApartments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        flat_id:
+                          type: integer
+                          example: 1
+                        flat_number:
+                          type: integer
+                          example: 101
+                        status:
+                          type: string
+                          example: available
+                          enum: [available, reserved, sold]
+                        square_meters:
+                          type: number
+                          example: 50.0
+                        images:
+                          type: array
+                          description: Array of image paths
+                          items:
+                            type: string
+                          example:
+                            [
+                              '/uploads/apartments/apartment-1234567890.jpg',
+                              '/uploads/apartments/apartment-0987654321.jpg',
+                            ]
+                        mobile_paths:
+                          type: string
+                          description: Mobile image path
+                          example: '/uploads/mobile-apartment-1234567890.jpg'
+                        desktop_paths:
+                          type: string
+                          description: Desktop image path
+                          example: '/uploads/desktop-apartment-0987654321.jpg'
+                  affectedCount:
+                    type: integer
+                    example: 1
+              required:
+                - message
+                - updatedApartments
+                - affectedCount
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Both floor_plan_id and flat_id are required
+              required:
+                - error
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+              required:
+                - error
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: No apartments found with the provided flat_id under this floor plan
+              required:
+                - error
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+              required:
+                - error

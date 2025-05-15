@@ -1,0 +1,38 @@
+import express from 'express';
+import dotenv from "dotenv";
+import { initDatabase } from './database/db.init';
+import router from './routes';
+import swaggerMiddleware from "./middlewares/swagger-middleware";
+import cookieParser from 'cookie-parser';
+import cors from "cors"
+
+dotenv.config();
+const app = express();
+const PORT = 3001;
+app.use(
+  cors({
+    origin: "http://localhost:3000", 
+    credentials: true, 
+  
+    methods: ['GET', 'POST', 'PUT', 'OPTIONS', "DELETE"],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
+app.use(express.json());
+app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
+app.use("/api", router);
+app.use("/api", ...swaggerMiddleware);
+
+(async () => {
+  try {
+    await initDatabase();
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    process.exit(1);
+  }
+})();
+
+app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
+});
