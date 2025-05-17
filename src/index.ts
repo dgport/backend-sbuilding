@@ -11,13 +11,20 @@ const app = express();
 const PORT = 3001;
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://aisigroup.ge", "https://api.aisigroup.ge"],
+    origin: [
+  "http://localhost:3000", 
+  "https://aisigroup.ge", 
+  "https://www.aisigroup.ge",
+  "https://api.aisigroup.ge", 
+  "http://api.aisigroup.ge"
+],
     credentials: true, 
   
-    methods: ['GET', 'POST', 'PUT', 'OPTIONS', "DELETE"],
-    allowedHeaders: ['Content-Type', 'Authorization']
+   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
   })
 );
+app.options('*', cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
