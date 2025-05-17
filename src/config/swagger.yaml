@@ -5,7 +5,7 @@ info:
   version: 0.2.0
 
 servers:
-  - url: http://localhost:3001/api
+  - url: https://api.aisigroup.ge/api
     description: Local server
 
 components:
