@@ -11,7 +11,7 @@ const app = express();
 const PORT = 3001;
 app.use(
   cors({
-    origin: "http://localhost:3000", 
+    origin: ["http://localhost:3000", "https://aisigroup.ge", "https://api.aisigroup.ge"],
     credentials: true, 
   
     methods: ['GET', 'POST', 'PUT', 'OPTIONS', "DELETE"],
