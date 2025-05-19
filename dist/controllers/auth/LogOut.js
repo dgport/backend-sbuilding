@@ -11,12 +11,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SignOut = void 0;
 const SignOut = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    console.log("🚪 Signing out user:", (_a = req.user) === null || _a === void 0 ? void 0 : _a.email);
     try {
-        res.clearCookie('token', {
+        // Determine environment
+        const isProduction = process.env.NODE_ENV === 'production';
+        // Set domain based on environment and origin
+        let domain;
+        if (isProduction) {
+            // Extract the base domain from the origin
+            const origin = req.headers.origin;
+            if (origin && origin.includes('aisigroup.ge')) {
+                domain = '.aisigroup.ge'; // This will work for all subdomains
+            }
+        }
+        // Clear the cookie with matching options that were used to set it
+        const cookieOptions = {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none'
-        });
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            domain: domain,
+            path: '/'
+        };
+        console.log("🍪 Clearing cookie with options:", cookieOptions);
+        res.clearCookie('token', cookieOptions);
         res.status(200).json({
             message: 'Logged out successfully'
         });
