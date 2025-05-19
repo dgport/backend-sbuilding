@@ -2,17 +2,12 @@ import { Request, Response } from "express";
 
 export const SignOut = async (req: Request, res: Response): Promise<void> => {
     try {
-        const isProduction = process.env.NODE_ENV === 'production';
-        
-        // Clear cookie with same options used to set it
-        const cookieOptions = {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' as const : 'lax' as const,
-            ...(isProduction && { domain: '.aisibatumi.ge' })
-        };
 
-        res.clearCookie('token', cookieOptions);
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
 
         res.status(200).json({
             message: 'Logged out successfully'

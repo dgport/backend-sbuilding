@@ -12,10 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SignOut = void 0;
 const SignOut = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const isProduction = process.env.NODE_ENV === 'production';
-        // Clear cookie with same options used to set it
-        const cookieOptions = Object.assign({ httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax' }, (isProduction && { domain: '.aisibatumi.ge' }));
-        res.clearCookie('token', cookieOptions);
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
         res.status(200).json({
             message: 'Logged out successfully'
         });

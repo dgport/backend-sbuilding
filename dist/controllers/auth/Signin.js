@@ -29,10 +29,10 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const { email, password } = result.data;
         const query = `
-            SELECT id, email, password_hash 
-            FROM users 
-            WHERE email = $1;
-        `;
+      SELECT id, email, password_hash 
+      FROM users 
+      WHERE email = $1;
+    `;
         const { rows } = yield sql_1.default.query(query, [email]);
         if (rows.length === 0) {
             res.status(401).json({
@@ -49,11 +49,12 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
-        const isProduction = process.env.NODE_ENV === 'production';
-        // Fixed cookie configuration for both localhost and production
-        const cookieOptions = Object.assign({ httpOnly: true, secure: isProduction, maxAge: 24 * 60 * 60 * 1000, sameSite: isProduction ? 'none' : 'lax' }, (isProduction && { domain: '.aisibatumi.ge' }));
-        console.log('Setting cookie with options:', cookieOptions);
-        res.cookie('token', token, cookieOptions);
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
         res.status(200).json({
             message: 'Login successful',
             data: {
