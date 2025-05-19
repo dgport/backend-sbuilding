@@ -1,46 +1,53 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+// Define the JWT payload interface
 interface JwtPayload {
-    userId: string;
-    email: string;
+  userId: string;
+  email: string;
+  [key: string]: any; // For any additional fields
 }
 
+// Extend Express Request type to include user property
 declare global {
-    namespace Express {
-        interface Request {
-            user?: JwtPayload;
-        }
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
     }
+  }
 }
 
 export const authenticateToken = (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ): void => {
-    const token = req.cookies.token;
+  const token = req.cookies.token;
 
-    // Add debugging
-    console.log('Auth middleware - Token present:', !!token);
-    console.log('Auth middleware - Cookies:', req.cookies);
+  // Enhanced debugging
+  console.log('Auth middleware - Headers:', req.headers);
+  console.log('Auth middleware - Cookies:', req.cookies);
+  console.log('Auth middleware - Token present:', !!token);
+  
+  if (!token) {
+    res.status(401).json({ message: "Authentication required" });
+    return;
+  }
 
-    if (!token) {
-        res.status(401).json({ message: "Authentication required" });
-        return;
-    }
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'your-secret-key'
+    ) as JwtPayload;
 
-    try {
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET || 'your-secret-key'
-        ) as JwtPayload;
-
-        req.user = decoded;
-        console.log('Auth middleware - User authenticated:', decoded.email);
-        next();
-    } catch (error) {
-        console.log('Auth middleware - Token verification failed:', error);
-        res.status(403).json({ message: "Invalid or expired token" });
-    }
+    req.user = decoded;
+    console.log('Auth middleware - User authenticated:', decoded.email);
+    next();
+  } catch (error) {
+    console.log('Auth middleware - Token verification failed:', error);
+    
+    // Clear the invalid token
+    res.clearCookie('token');
+    res.status(403).json({ message: "Invalid or expired token" });
+  }
 };

@@ -14,27 +14,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const db_init_1 = require("./database/db.init");
-const routes_1 = __importDefault(require("./routes"));
-const swagger_middleware_1 = __importDefault(require("./middlewares/swagger-middleware"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
+const db_init_1 = require("./database/db.init");
+const routes_1 = __importDefault(require("./routes"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = parseInt(process.env.PORT || '3001', 10);
-const isProduction = process.env.NODE_ENV === 'production';
+const PORT = Number.parseInt(process.env.PORT || "3001", 10);
+const isProduction = process.env.NODE_ENV === "production";
 // Define allowed origins
 const allowedOrigins = [
     "http://localhost:3000",
     "https://aisigroup.ge",
     "https://www.aisigroup.ge",
     "https://api.aisigroup.ge",
-    "http://api.aisigroup.ge"
+    "http://api.aisigroup.ge",
 ];
 // CORS configuration with proper function-based origin handling
 app.use((0, cors_1.default)({
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps, curl requests)
         if (!origin)
             return callback(null, true);
@@ -47,16 +46,16 @@ app.use((0, cors_1.default)({
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 }));
 // Handle preflight requests
-app.options('*', (0, cors_1.default)());
+app.options("*", (0, cors_1.default)());
 // Add security headers for production
 if (isProduction) {
     app.use((req, res, next) => {
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+        res.header("Access-Control-Allow-Credentials", "true");
+        res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
         next();
     });
 }
@@ -65,29 +64,26 @@ app.use(express_1.default.json());
 // Parse cookies
 app.use((0, cookie_parser_1.default)());
 // Serve static files from uploads directory
-app.use('/uploads', express_1.default.static('uploads'));
+app.use("/uploads", express_1.default.static("uploads"));
 // Set up API routes
 app.use("/api", routes_1.default);
-// Set up Swagger documentation
-app.use("/api", ...swagger_middleware_1.default);
 app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
+    console.error("Unhandled error:", err);
     const statusCode = err.status || 500;
     res.status(statusCode).json({
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        message: "Internal server error",
+        error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
 });
-// Initialize database and start server
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, db_init_1.initDatabase)();
         app.listen(PORT, () => {
-            console.log(`Server is running at http://localhost:${PORT} (${isProduction ? 'production' : 'development'} mode)`);
+            console.log(`Server is running at http://localhost:${PORT} (${isProduction ? "production" : "development"} mode)`);
         });
     }
     catch (error) {
-        console.error('Failed to initialize database:', error);
+        console.error("Failed to initialize database:", error);
         process.exit(1);
     }
 }))();

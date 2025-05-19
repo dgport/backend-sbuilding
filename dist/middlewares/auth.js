@@ -7,9 +7,10 @@ exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.token;
-    // Add debugging
-    console.log('Auth middleware - Token present:', !!token);
+    // Enhanced debugging
+    console.log('Auth middleware - Headers:', req.headers);
     console.log('Auth middleware - Cookies:', req.cookies);
+    console.log('Auth middleware - Token present:', !!token);
     if (!token) {
         res.status(401).json({ message: "Authentication required" });
         return;
@@ -22,6 +23,8 @@ const authenticateToken = (req, res, next) => {
     }
     catch (error) {
         console.log('Auth middleware - Token verification failed:', error);
+        // Clear the invalid token
+        res.clearCookie('token');
         res.status(403).json({ message: "Invalid or expired token" });
     }
 };
