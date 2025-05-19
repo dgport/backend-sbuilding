@@ -51,11 +51,11 @@ export const SignIn = async (req: Request, res: Response): Promise<void> => {
         );
 
       
-        res.cookie('token', token, {
+       res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000  
+            secure: true, // Set to true even in development when using cross-domain
+            sameSite: 'none', // Important for cross-domain cookies
+            maxAge: 24 * 60 * 60 * 1000
         });
         
 

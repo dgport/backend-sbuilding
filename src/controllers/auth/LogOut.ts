@@ -5,8 +5,8 @@ export const SignOut = async (req: Request, res: Response): Promise<void> => {
 
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: true,
+            sameSite: 'none'
         });
 
         res.status(200).json({
