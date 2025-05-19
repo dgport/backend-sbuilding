@@ -15,8 +15,8 @@ app.use(
   "http://localhost:3000", 
   "https://aisigroup.ge", 
   "https://www.aisigroup.ge",
-  "https://api.aisigroup.ge", 
-  "http://api.aisigroup.ge"
+  "https://api.aisigroup.ge"
+ 
 ],
     credentials: true, 
   

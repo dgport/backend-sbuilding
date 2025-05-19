@@ -51,8 +51,10 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // Set to true even in development when using cross-domain
-            sameSite: 'none', // Important for cross-domain cookies
+            secure: process.env.NODE_ENV === 'production', // Only secure in production
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Helps with cross-site requests
+            domain: process.env.NODE_ENV === 'production' ? '.aisigroup.ge' : undefined, // Match domain for cross-subdomain
+            path: '/',
             maxAge: 24 * 60 * 60 * 1000
         });
         res.status(200).json({

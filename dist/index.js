@@ -27,8 +27,7 @@ app.use((0, cors_1.default)({
         "http://localhost:3000",
         "https://aisigroup.ge",
         "https://www.aisigroup.ge",
-        "https://api.aisigroup.ge",
-        "http://api.aisigroup.ge"
+        "https://api.aisigroup.ge"
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],

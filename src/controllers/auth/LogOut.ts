@@ -4,10 +4,10 @@ export const SignOut = async (req: Request, res: Response): Promise<void> => {
     try {
 
         res.clearCookie('token', {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none'
-        });
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none'
+});
 
         res.status(200).json({
             message: 'Logged out successfully'
