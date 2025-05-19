@@ -21,6 +21,10 @@ export const authenticateToken = (
 ): void => {
     const token = req.cookies.token;
 
+    // Add debugging
+    console.log('Auth middleware - Token present:', !!token);
+    console.log('Auth middleware - Cookies:', req.cookies);
+
     if (!token) {
         res.status(401).json({ message: "Authentication required" });
         return;
@@ -33,8 +37,10 @@ export const authenticateToken = (
         ) as JwtPayload;
 
         req.user = decoded;
+        console.log('Auth middleware - User authenticated:', decoded.email);
         next();
     } catch (error) {
+        console.log('Auth middleware - Token verification failed:', error);
         res.status(403).json({ message: "Invalid or expired token" });
     }
 };

@@ -1,3 +1,5 @@
+ 
+ 
 import { Request, Response } from "express";
 import pool from '../../config/sql';
 import jwt from 'jsonwebtoken';
@@ -19,10 +21,10 @@ export const SignIn = async (req: Request, res: Response): Promise<void> => {
         const { email, password } = result.data;
 
         const query = `
-      SELECT id, email, password_hash 
-      FROM users 
-      WHERE email = $1;
-    `;
+            SELECT id, email, password_hash 
+            FROM users 
+            WHERE email = $1;
+        `;
 
         const { rows } = await pool.query(query, [email]);
 
@@ -49,15 +51,16 @@ export const SignIn = async (req: Request, res: Response): Promise<void> => {
             { expiresIn: '24h' }
         );
 
-        // CRITICAL UPDATE: Configure cookies properly for cross-domain authentication
-        const isProduction: boolean = process.env.NODE_ENV === 'production';
+        const isProduction = process.env.NODE_ENV === 'production';
         
+        // Fixed cookie configuration
         res.cookie('token', token, {
             httpOnly: true,
-            secure: isProduction, // Must be true in production for HTTPS sites
-            sameSite: isProduction ? 'none' : 'lax', // Changed from 'strict' to work cross-domain
-            domain: isProduction ? '.aisigroup.ge' : undefined, // Added domain setting with leading dot
-            maxAge: 24 * 60 * 60 * 1000  // 24 hours
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            // Fix: Use the correct domain for aisibatumi.ge
+            domain: isProduction ? '.aisibatumi.ge' : undefined,
+            maxAge: 24 * 60 * 60 * 1000
         });
 
         res.status(200).json({

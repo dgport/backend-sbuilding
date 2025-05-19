@@ -15,11 +15,11 @@ const isProduction: boolean = process.env.NODE_ENV === 'production';
 
 // Define allowed origins
 const allowedOrigins: string[] = [
-  "http://localhost:3000",
-  "https://aisigroup.ge", 
-  "https://www.aisigroup.ge",
-  "https://api.aisigroup.ge", 
-  "http://api.aisigroup.ge"
+    "http://localhost:3000",
+    "https://aisibatumi.ge", 
+    "https://www.aisibatumi.ge",
+    "https://api.aisibatumi.ge", 
+    "http://api.aisibatumi.ge"
 ];
 
 // CORS configuration with proper function-based origin handling

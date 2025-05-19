@@ -2,11 +2,13 @@ import { Request, Response } from "express";
 
 export const SignOut = async (req: Request, res: Response): Promise<void> => {
     try {
-
+        const isProduction = process.env.NODE_ENV === 'production';
+        
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            domain: isProduction ? '.aisibatumi.ge' : undefined
         });
 
         res.status(200).json({
