@@ -1,5 +1,4 @@
- 
- 
+// 1. Update your SignIn.ts - Fix cookie settings for localhost
 import { Request, Response } from "express";
 import pool from '../../config/sql';
 import jwt from 'jsonwebtoken';
@@ -53,15 +52,18 @@ export const SignIn = async (req: Request, res: Response): Promise<void> => {
 
         const isProduction = process.env.NODE_ENV === 'production';
         
-        // Fixed cookie configuration
-        res.cookie('token', token, {
+        // Fixed cookie configuration for both localhost and production
+        const cookieOptions = {
             httpOnly: true,
             secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax',
-            // Fix: Use the correct domain for aisibatumi.ge
-            domain: isProduction ? '.aisibatumi.ge' : undefined,
-            maxAge: 24 * 60 * 60 * 1000
-        });
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            sameSite: isProduction ? 'none' as const : 'lax' as const,
+            // Don't set domain for localhost, let browser handle it
+            ...(isProduction && { domain: '.aisibatumi.ge' })
+        };
+
+        console.log('Setting cookie with options:', cookieOptions);
+        res.cookie('token', token, cookieOptions);
 
         res.status(200).json({
             message: 'Login successful',

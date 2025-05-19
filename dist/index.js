@@ -27,10 +27,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Define allowed origins
 const allowedOrigins = [
     "http://localhost:3000",
-    "https://aisigroup.ge",
-    "https://www.aisigroup.ge",
-    "https://api.aisigroup.ge",
-    "http://api.aisigroup.ge"
+    "https://aisibatumi.ge",
+    "https://www.aisibatumi.ge",
+    "https://api.aisibatumi.ge",
+    "http://api.aisibatumi.ge"
 ];
 // CORS configuration with proper function-based origin handling
 app.use((0, cors_1.default)({
