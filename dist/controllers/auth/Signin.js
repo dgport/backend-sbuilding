@@ -18,12 +18,9 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const SigninSchema_1 = require("../../schemas/auth/SigninSchema");
 const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("📝 SignIn attempt for:", req.body.email);
-    console.log("🌐 Origin:", req.headers.origin);
     try {
         const result = SigninSchema_1.SignInSchema.safeParse(req.body);
         if (!result.success) {
-            console.log("❌ Validation failed:", result.error.format());
             res.status(400).json({
                 message: 'Invalid input data',
                 errors: result.error.format(),
@@ -38,7 +35,6 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     `;
         const { rows } = yield sql_1.default.query(query, [email]);
         if (rows.length === 0) {
-            console.log("❌ No user found with email:", email);
             res.status(401).json({
                 message: 'Invalid credentials',
             });
@@ -47,41 +43,33 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const user = rows[0];
         const passwordMatch = yield bcrypt_1.default.compare(password, user.password_hash);
         if (!passwordMatch) {
-            console.log("❌ Password did not match for user:", email);
             res.status(401).json({
                 message: 'Invalid credentials',
             });
             return;
         }
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
-        // Determine environment
         const isProduction = process.env.NODE_ENV === 'production';
-        console.log(`🔧 Environment: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
-        // Set domain based on environment and origin
         let domain;
         if (isProduction) {
-            // Extract the base domain from the origin
             const origin = req.headers.origin;
             if (origin && origin.includes('aisigroup.ge')) {
-                domain = '.aisigroup.ge'; // This will work for all subdomains
-                console.log("🔧 Using production domain:", domain);
+                domain = '.aisigroup.ge';
             }
         }
-        // Cookie settings
         const cookieOptions = {
             httpOnly: true,
-            secure: isProduction, // Only use secure in production
+            secure: isProduction,
             sameSite: isProduction ? 'none' : 'lax',
             domain: domain,
             path: '/',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            maxAge: 24 * 60 * 60 * 1000
         };
         console.log("🍪 Setting cookie with options:", cookieOptions);
         res.cookie('token', token, cookieOptions);
-        // Also send the token in the response body for frontends that prefer to use Authorization header
         res.status(200).json({
             message: 'Login successful',
-            token: token, // Include the token in the response
+            token: token,
             data: {
                 id: user.id,
                 email: user.email

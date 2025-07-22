@@ -11,10 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkAuthStatus = void 0;
 const checkAuthStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("🔍 Checking auth status");
     try {
         if (req.user) {
-            console.log("✅ User authenticated:", req.user.email);
             res.status(200).json({
                 authenticated: true,
                 user: {
@@ -24,7 +22,6 @@ const checkAuthStatus = (req, res) => __awaiter(void 0, void 0, void 0, function
             });
         }
         else {
-            console.log("❌ User not authenticated");
             res.status(401).json({
                 authenticated: false,
                 message: "Not authenticated"
