@@ -17,12 +17,12 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const apiUrl = `${process.env.CRM_API}/${buildingId}/${floorId}`;
+    const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
 
     const headers: HeadersInit = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
-    
+
     if (process.env.CRM_API_TOKEN) {
       headers.authtoken = process.env.CRM_API_TOKEN;
     }
