@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 export const getPropertyData = async (req: Request, res: Response): Promise<void> => {
-  let { buildingId, floorId } = req.params;
+  let { buildingId, floorId } = req.params; // Logic to handle optional floorId in URL structure
 
   if (!floorId && buildingId) {
     floorId = buildingId;
@@ -9,6 +9,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
   }
 
   try {
+    // Validation for floor ID
     if (!floorId || isNaN(Number(floorId))) {
       res.status(400).json({
         success: false,
@@ -21,7 +22,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-    };
+    }; // MODIFIED: Using the custom 'authtoken' header with the raw token value, as required by the API.
 
     if (process.env.CRM_API_TOKEN) {
       headers.authtoken = process.env.CRM_API_TOKEN;
@@ -30,12 +31,13 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
     const response = await fetch(apiUrl, { headers });
 
     if (!response.ok) {
-      throw new Error(`External API returned status: ${response.status}`);
+      // Throw an error with the status and URL for improved debugging
+      throw new Error(`External API returned status: ${response.status} for URL: ${apiUrl}`);
     }
 
     const data = await response.json();
 
-    let apartments = data.apartments || data;
+    let apartments = data.apartments || data; // Logic to normalize apartment data structure
 
     if (!Array.isArray(apartments)) {
       apartments = Object.values(apartments).filter(
@@ -45,7 +47,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       if (!Array.isArray(apartments) || apartments.length === 0) {
         apartments = [];
       }
-    }
+    } // Sorting apartments numerically by name
 
     if (apartments.length > 0) {
       apartments.sort((a: any, b: any) => {
