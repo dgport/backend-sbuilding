@@ -19,14 +19,15 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
 
     const apiUrl = `${process.env.CRM_API}/${buildingId}/${floorId}`;
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        authtoken:
-          process.env.CRM_API_TOKEN ||
-          'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiIiwibmFtZSI6IiIsIkFQSV9USU1FIjoxNzYwNjg1NjgyfQ.swqoWN2XKnrVdEEqd0pX-ZArktmwUYTH8B5YhH5zF8Y',
-        'Content-Type': 'application/json',
-      },
-    });
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (process.env.CRM_API_TOKEN) {
+      headers.authtoken = process.env.CRM_API_TOKEN;
+    }
+
+    const response = await fetch(apiUrl, { headers });
 
     if (!response.ok) {
       throw new Error(`External API returned status: ${response.status}`);
