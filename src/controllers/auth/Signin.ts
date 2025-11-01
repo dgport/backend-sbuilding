@@ -79,7 +79,7 @@ export const SignIn = async (req: Request, res: Response): Promise<void> => {
             maxAge: 24 * 60 * 60 * 1000 
         };
         
-        console.log("🍪 Setting cookie with options:", cookieOptions);
+ ;
         res.cookie('token', token, cookieOptions);
      
         res.status(200).json({

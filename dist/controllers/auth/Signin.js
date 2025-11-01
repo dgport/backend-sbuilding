@@ -65,7 +65,7 @@ const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             path: '/',
             maxAge: 24 * 60 * 60 * 1000
         };
-        console.log("🍪 Setting cookie with options:", cookieOptions);
+        
         res.cookie('token', token, cookieOptions);
         res.status(200).json({
             message: 'Login successful',
