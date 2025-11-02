@@ -26,6 +26,13 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       headers: {
         authtoken: process.env.CRM_API_TOKEN || 'token',
         'Content-Type': 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        Referer: 'https://sbuilding.ge/',
+        Origin: 'https://sbuilding.ge',
       },
     });
 
