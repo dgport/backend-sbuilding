@@ -6,6 +6,8 @@
     "serve": "node dist/index.js"
   },
   "dependencies": {
+    "axios": "^1.13.1",
+    "axios-cookiejar-support": "^6.0.4",
     "bcrypt": "^5.1.1",
     "cloudscraper": "^4.6.0",
     "cookie-parser": "^1.4.7",
@@ -16,6 +18,7 @@
     "multer": "^1.4.5-lts.2",
     "pg": "^8.14.0",
     "swagger-ui-express": "^5.0.1",
+    "tough-cookie": "^6.0.0",
     "uuidv4": "^6.2.13",
     "yamljs": "^0.3.0",
     "zod": "^3.24.2"
