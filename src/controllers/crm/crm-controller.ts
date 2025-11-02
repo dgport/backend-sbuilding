@@ -31,7 +31,9 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
 
     // Prepare headers
     const headers: Record<string, string> = {
-      authtoken: process.env.CRM_API_TOKEN || 'token',
+      authtoken:
+        process.env.CRM_API_TOKEN ||
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiIiwibmFtZSI6IiIsIkFQSV9USU1FIjoxNzYwNjg1NjgyfQ.swqoWN2XKnrVdEEqd0pX-ZArktmwUYTH8B5YhH5zF8Y',
       Accept: '*/*',
       'User-Agent': 'Thunder Client',
     };
@@ -46,42 +48,17 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
     console.log('🔑 Auth Token:', process.env.CRM_API_TOKEN ? 'Set' : 'Not Set');
     console.log('🍪 Stored Cookies:', storedCookies ? 'Yes' : 'No');
 
-    let response = await axios.get(apiUrl, {
+    const response = await axios.get(apiUrl, {
       headers,
       validateStatus: () => true,
       timeout: 10000,
       maxRedirects: 5,
+      // Disable compression to avoid Cloudflare detection
       decompress: true,
     });
 
-    console.log('📊 Response Status (first attempt):', response.status);
+    console.log('📊 Response Status:', response.status);
     console.log('🍪 Response Cookies:', response.headers['set-cookie'] || 'None');
-
-    // If 403 on first try, extract cookies and retry
-    if (response.status === 403 && response.headers['set-cookie']) {
-      console.log('🔄 Got 403 but received cookies, retrying with cookies...');
-
-      const setCookieHeaders = response.headers['set-cookie'];
-      if (setCookieHeaders && Array.isArray(setCookieHeaders)) {
-        const cookies = setCookieHeaders
-          .map((cookie: string) => cookie.split(';')[0].trim())
-          .join('; ');
-
-        cookieStore.set(cookieKey, cookies);
-        headers['Cookie'] = cookies;
-
-        // Retry with cookies
-        response = await axios.get(apiUrl, {
-          headers,
-          validateStatus: () => true,
-          timeout: 10000,
-          maxRedirects: 5,
-          decompress: true,
-        });
-
-        console.log('📊 Response Status (second attempt with cookies):', response.status);
-      }
-    }
 
     // Extract and store cookies from response
     const setCookieHeaders = response.headers['set-cookie'];
