@@ -42,10 +42,17 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       headers['Cookie'] = storedCookies;
     }
 
+    console.log('🔍 Request URL:', apiUrl);
+    console.log('🔑 Auth Token:', process.env.CRM_API_TOKEN ? 'Set' : 'Not Set');
+    console.log('🍪 Stored Cookies:', storedCookies ? 'Yes' : 'No');
+
     const response = await axios.get(apiUrl, {
       headers,
       validateStatus: () => true, // Don't throw on any status
     });
+
+    console.log('📊 Response Status:', response.status);
+    console.log('🍪 Response Cookies:', response.headers['set-cookie'] || 'None');
 
     // Extract and store cookies from response
     const setCookieHeaders = response.headers['set-cookie'];
@@ -56,9 +63,11 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
         .join('; ');
 
       cookieStore.set(cookieKey, cookies);
+      console.log('✅ Cookies stored for future requests');
     }
 
     if (response.status !== 200) {
+      console.error('❌ API Error Response:', response.data);
       throw new Error(`External API returned status: ${response.status}`);
     }
 
