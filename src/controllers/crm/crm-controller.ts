@@ -19,18 +19,46 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       return;
     }
 
+    // --- IMPORTANT: Check for CRM_API_TOKEN before proceeding ---
+    const token = process.env.CRM_API_TOKEN;
+    if (!token) {
+      console.error('❌ CRM_API_TOKEN is not set!');
+      res.status(500).json({
+        success: false,
+        message: 'API token not configured',
+      });
+      return;
+    }
+    // --- End Token Check ---
+
     // Call external API with proper format: /property/{buildingId}/{floorId}
     const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
-    console.log('Calling external API:', apiUrl);
 
+    // 🚀 UPDATED: Adding robust, browser-like headers to bypass basic Cloudflare WAF rules
     const response = await fetch(apiUrl, {
       headers: {
-        authtoken: process.env.CRM_API_TOKEN || 'token',
+        // 1. Authentication Token
+        authtoken: token,
+        // 2. Content Negotiation
         'Content-Type': 'application/json',
+        // 3. More accepting than just JSON, mimicking a real browser request
+        Accept: 'application/json, text/plain, */*',
+        // 4. IMPORTANT: Realistic User-Agent to mimic a desktop browser (Chrome/Windows)
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        // 5. Referer: A host that makes the request look like it originated from a trusted domain
+        Referer: 'https://sbuilding.ge/',
       },
     });
 
     if (!response.ok) {
+      // Fetch the error body if available to see if it's the Cloudflare HTML
+      const errorBody = await response.text();
+
+      console.error(
+        `External API returned status: ${response.status}. Body preview: ${errorBody.substring(0, 200)}...`
+      );
+
       throw new Error(`External API returned status: ${response.status}`);
     }
 
