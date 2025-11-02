@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 
-// IMPORTANT: Remove the global cookieStore map entirely:
-// const cookieStore = new Map<string, string>();
-
 export const getPropertyData = async (req: Request, res: Response): Promise<void> => {
   let { buildingId, floorId } = req.params;
 
@@ -23,46 +20,59 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
 
     const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
 
-    // 2. Prepare Headers
+    // 2. ✨ REFINED HEADERS FOR BOT EVASION AND AUTHENTICATION ✨
     const headers: Record<string, string> = {
-      authtoken: process.env.CRM_API_TOKEN || 'token',
+      // Use the authtoken from your environment variable (or a fallback)
+      authtoken: (req.headers.authtoken as string) || process.env.CRM_API_TOKEN || 'token',
+
+      // Use a specific Thunder Client UA or a highly realistic Chrome UA
+      // We'll use a realistic Chrome UA to minimize Cloudflare's bot-list blocking:
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+      // Required headers from your working example:
       Accept: '*/*',
-      'User-Agent': 'Thunder Client',
+      // Note: Sending Content-Type for a GET request is unusual,
+      // but since Thunder Client sends it and works, let's include it.
+      'Content-Type': 'application/json',
+
+      // Additional browser-like headers to fool Cloudflare:
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      Connection: 'keep-alive',
     };
 
     // 3. 🍪 CRITICAL: Pass the cookies the client sent to your Express server
-    //    The browser must first receive a Set-Cookie and send it back on follow-up calls.
     const clientCookies = req.headers.cookie;
     if (clientCookies) {
-      // Pass client's cookies to the external API call
       headers['Cookie'] = clientCookies;
       console.log('🍪 Forwarding Client Cookies to External API');
     }
 
     // 4. Axios Call
+    // Note: For a GET request, Axios will ignore the 'body' property.
+    // We do NOT include the bodyContent here as the working request was GET.
     const response = await axios.get(apiUrl, {
       headers,
       validateStatus: () => true,
       timeout: 10000,
-      // Setting a generic 'Accept-Encoding' can sometimes help with Cloudflare
-      // but decompress: true might be enough. Let's rely on the Thunder Client UA.
     });
+
+    // ... (The rest of the cookie forwarding and response handling logic remains the same) ...
 
     // 5. 🍪 CRITICAL: Forward the 'set-cookie' header back to the client
     const setCookieHeaders = response.headers['set-cookie'];
     if (setCookieHeaders && Array.isArray(setCookieHeaders)) {
-      // The client (browser) will now store these cookies for future requests
       res.setHeader('set-cookie', setCookieHeaders);
       console.log('✅ Forwarding Set-Cookie headers to Client');
     }
 
     if (response.status !== 200) {
       console.error('❌ API Error Response:', response.data);
-      // Ensure the client gets the non-200 status
       res.status(response.status).json({
         success: false,
         message: `External API returned status: ${response.status}`,
-        data: response.data, // Optionally pass the error data back
+        data: response.data,
       });
       return;
     }
@@ -70,7 +80,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
     // 6. Data Processing and Sorting (Logic remains the same)
     const data = response.data;
     let apartments = data.apartments || data;
-    // ... (rest of data normalization and sorting logic) ...
+    // ... (data normalization and sorting logic) ...
 
     // 7. Return Formatted Response
     res.status(200).json({
