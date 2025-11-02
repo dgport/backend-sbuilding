@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import cloudscraper from 'cloudscraper';
 
 export const getPropertyData = async (req: Request, res: Response): Promise<void> => {
   let { buildingId, floorId } = req.params;
@@ -20,31 +19,22 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const token = process.env.CRM_API_TOKEN;
-    if (!token) {
-      console.error('❌ CRM_API_TOKEN is not set!');
-      res.status(500).json({
-        success: false,
-        message: 'API token not configured',
-      });
-      return;
-    }
-
     // Call external API with proper format: /property/{buildingId}/{floorId}
     const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
     console.log('Calling external API:', apiUrl);
 
-    // Use cloudscraper to bypass Cloudflare protection
-    const data = await cloudscraper({
-      uri: apiUrl,
-      method: 'GET',
+    const response = await fetch(apiUrl, {
       headers: {
         authtoken: process.env.CRM_API_TOKEN || 'token',
         'Content-Type': 'application/json',
-        Accept: 'application/json',
       },
-      json: true, // Automatically parse JSON response
     });
+
+    if (!response.ok) {
+      throw new Error(`External API returned status: ${response.status}`);
+    }
+
+    const data = await response.json();
 
     // Ensure apartments is an array
     let apartments = data.apartments || data;
