@@ -1,23 +1,20 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import { CookieJar } from 'tough-cookie';
-import { wrapper } from 'axios-cookiejar-support';
 
-// Wrap axios with cookie jar support
-wrapper(axios);
-
-// Store cookie jars per building
-const cookieJars = new Map<string, CookieJar>();
+// Store cookies for each session
+const cookieStore = new Map<string, string>();
 
 export const getPropertyData = async (req: Request, res: Response): Promise<void> => {
   let { buildingId, floorId } = req.params;
 
+  // If only one param is provided, treat it as floorId
   if (!floorId && buildingId) {
     floorId = buildingId;
     buildingId = 'undefined';
   }
 
   try {
+    // Validate floorId
     if (!floorId || isNaN(Number(floorId))) {
       res.status(400).json({
         success: false,
@@ -26,38 +23,64 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       return;
     }
 
+    // Call external API with proper format: /property/{buildingId}/{floorId}
     const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
+
+    // Create a unique key for this API
     const cookieKey = `sbuilding_${buildingId}`;
 
-    // Get or create cookie jar for this building
-    if (!cookieJars.has(cookieKey)) {
-      cookieJars.set(cookieKey, new CookieJar());
+    // Prepare headers
+    const headers: Record<string, string> = {
+      authtoken: process.env.CRM_API_TOKEN || 'token',
+      Accept: '*/*',
+      'User-Agent': 'Thunder Client',
+    };
+
+    // Add stored cookies if they exist
+    const storedCookies = cookieStore.get(cookieKey);
+    if (storedCookies) {
+      headers['Cookie'] = storedCookies;
     }
 
     const response = await axios.get(apiUrl, {
-      headers: {
-        authtoken: process.env.CRM_API_TOKEN || 'token',
-        Accept: '*/*',
-        'User-Agent': 'Thunder Client',
-      },
-      jar: cookieJars.get(cookieKey),
-      withCredentials: true,
+      headers,
+      validateStatus: () => true, // Don't throw on any status
     });
+
+    // Extract and store cookies from response
+    const setCookieHeaders = response.headers['set-cookie'];
+    if (setCookieHeaders && Array.isArray(setCookieHeaders)) {
+      // Parse and store cookies (extract only the cookie value, not the metadata)
+      const cookies = setCookieHeaders
+        .map((cookie: string) => cookie.split(';')[0].trim())
+        .join('; ');
+
+      cookieStore.set(cookieKey, cookies);
+    }
+
+    if (response.status !== 200) {
+      throw new Error(`External API returned status: ${response.status}`);
+    }
 
     const data = response.data;
 
+    // Ensure apartments is an array
     let apartments = data.apartments || data;
 
+    // Add type check and convert to array if needed
     if (!Array.isArray(apartments)) {
+      // If it's an object, try to extract array from it or wrap it
       apartments = Object.values(apartments).filter(
         (item): item is any => typeof item === 'object' && item !== null
       );
 
+      // If still not an array or empty, return empty array
       if (!Array.isArray(apartments) || apartments.length === 0) {
         apartments = [];
       }
     }
 
+    // Sort apartments by numeric value in name (only if array is not empty)
     if (apartments.length > 0) {
       apartments.sort((a: any, b: any) => {
         const numA = parseInt(a.name?.replace(/[^\d]/g, '') || '0', 10);
@@ -66,6 +89,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       });
     }
 
+    // Return formatted response
     res.status(200).json({
       success: true,
       data: {
