@@ -48,7 +48,11 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
 
     const response = await axios.get(apiUrl, {
       headers,
-      validateStatus: () => true, // Don't throw on any status
+      validateStatus: () => true,
+      timeout: 10000,
+      maxRedirects: 5,
+      // Disable compression to avoid Cloudflare detection
+      decompress: true,
     });
 
     console.log('📊 Response Status:', response.status);
