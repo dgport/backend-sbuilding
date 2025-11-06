@@ -1,24 +1,9 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 
-export const getPropertyData = async (req: Request, res: Response): Promise<void> => {
-  let { buildingId, floorId } = req.params;
-
-  if (!floorId && buildingId) {
-    floorId = buildingId;
-    buildingId = 'undefined';
-  }
-
+export const getAllPropertyData = async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!floorId || isNaN(Number(floorId))) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid floor ID',
-      });
-      return;
-    }
-
-    const apiUrl = `https://sbuilding.bo.ge/api/property/${buildingId}/${floorId}`;
+    const apiUrl = `https://sbuilding.bo.ge/api/property`; // Fetch all data at once
 
     const response = await axios.get(apiUrl, {
       headers: {
@@ -41,6 +26,7 @@ export const getPropertyData = async (req: Request, res: Response): Promise<void
       }
     }
 
+    // Sort all apartments by name
     if (apartments.length > 0) {
       apartments.sort((a: any, b: any) => {
         const numA = parseInt(a.name?.replace(/[^\d]/g, '') || '0', 10);

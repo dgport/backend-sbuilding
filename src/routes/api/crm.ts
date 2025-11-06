@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { getAllPropertyData } from '../../controllers/crm/crm-controller';
 
-import { getPropertyData } from '../../controllers/crm/crm-controller';
+ 
 
 const getCrmData = Router();
 
-getCrmData.get('/property/:buildingId?/:floorId?', getPropertyData);
+getCrmData.get('/property', getAllPropertyData);
 
 export default getCrmData;
